@@ -1,0 +1,30 @@
+# Razvojni kontejner koristi se u VS Code
+FROM klakegg/hugo:0.107.0-ext-alpine AS dev_containers_target_stage
+
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
+RUN set -eux \
+    && addgroup --gid $USER_GID -S $USERNAME \
+    && adduser -u $USER_UID -S $USERNAME -G $USERNAME
+
+# Kontejner u kome se izgrađuje site
+FROM dev_containers_target_stage AS build
+ARG HUGO_CMD
+ARG HUGO_DESTINATION_ARG
+ARG HUGO_ENV_ARG
+ARG HUGO_DIR
+
+ENV HUGO_DESTINATION="${HUGO_DESTINATION_ARG:-/target}" \
+    HUGO_ENV="${HUGO_ENV_ARG:-DEV}"
+
+COPY ./src /src
+WORKDIR ${HUGO_DIR:-/src}
+RUN hugo $HUGO_CMD
+
+# Produkcijski kontejner
+FROM nginx
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /target /usr/share/nginx/html
