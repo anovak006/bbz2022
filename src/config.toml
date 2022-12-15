@@ -1,0 +1,4 @@
+baseURL = 'https://bbz2022.carnet.hr/static/'
+languageCode = 'hr-HR'
+title = 'Božićna burza znanja 2022'
+theme = 'ananke'
