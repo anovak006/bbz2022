@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  hugo:
+    build: 
+      context: .
+      dockerfile: Dockerfile.hugo
+      target: dev
+    command: server -D --disableFastRender
+    # command: server
+    volumes:
+      - ./src:/src
+    ports:
+      - 1313:1313
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.hugo_https.redirectscheme.scheme=https"
+      - "traefik.http.routers.app.entrypoints=http"
+      - "traefik.http.routers.hugo.rule=(Host(`bbz2022.carnet.hr`) && PathPrefix(`/static/`))"
+      - "traefik.http.routers.hugo.middlewares=hugo_https@docker"
+      - "traefik.http.routers.hugo_https.rule=(Host(`bbz2022.carnet.hr`) && PathPrefix(`/static/`))"
+      - "traefik.http.routers.hugo_https.tls=true"
+      - "traefik.http.routers.hugo_https.entrypoints=https"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
